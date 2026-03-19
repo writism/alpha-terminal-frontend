@@ -11,13 +11,18 @@ export default function DashboardPage() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSummaries = () => {
+  const fetchSummaries = async () => {
     setLoading(true);
-    summaryApi
-      .getSummaries()
-      .then((data) => setSummaries(data.length > 0 ? data : MOCK_SUMMARIES))
-      .catch(() => setSummaries(MOCK_SUMMARIES))
-      .finally(() => setLoading(false));
+    try {
+      const data = await summaryApi.getSummaries();
+      console.log('[summaries] fetched:', data);
+      setSummaries(data.length > 0 ? data : MOCK_SUMMARIES);
+    } catch (e) {
+      console.error('[summaries] fetch error:', e);
+      setSummaries(MOCK_SUMMARIES);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -29,8 +34,9 @@ export default function DashboardPage() {
     setError(null);
     try {
       await summaryApi.runPipeline();
-      fetchSummaries();
+      await fetchSummaries();
     } catch (e) {
+      console.error('[pipeline] error:', e);
       setError((e as Error).message);
     } finally {
       setRunning(false);
