@@ -1,3 +1,8 @@
+'use client'
+
+import type { HeatmapItem } from '@/features/stock/domain/model/dailyReturnsHeatmap'
+import { StockDailyReturnsHeatmap } from './StockDailyReturnsHeatmap'
+
 type Tag = string | { label: string; category?: string }
 
 interface StockSummaryCardProps {
@@ -8,6 +13,8 @@ interface StockSummaryCardProps {
   sentiment?: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
   sentiment_score?: number;
   confidence?: number;
+  /** BL-FE-30/34: 일별 등락 히트맵(선택). asOf 생략 시 종목 시리즈 마지막 거래일 사용 */
+  heatmap?: { item: HeatmapItem; weeks: number; asOf?: string | null };
 }
 
 function tagLabel(tag: Tag): string {
@@ -30,6 +37,7 @@ const SENTIMENT_LABEL = {
 export default function StockSummaryCard({
   symbol, name, summary, tags,
   sentiment, sentiment_score, confidence,
+  heatmap,
 }: StockSummaryCardProps) {
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-3 bg-background">
@@ -50,8 +58,17 @@ export default function StockSummaryCard({
         )}
       </div>
 
-      {/* 요약 텍스트 */}
+      {/* 요약 텍스트 — 히트맵보다 먼저 두어 본문 맥락을 먼저 읽도록 (BL-FE-30 UX) */}
       <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{summary}</p>
+
+      {heatmap && (
+        <StockDailyReturnsHeatmap
+          item={heatmap.item}
+          weeks={heatmap.weeks}
+          asOf={heatmap.asOf ?? null}
+          showLegend={false}
+        />
+      )}
 
       {/* 태그 */}
       <div className="flex flex-wrap gap-2">
