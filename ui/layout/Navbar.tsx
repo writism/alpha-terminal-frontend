@@ -38,9 +38,14 @@ export default function Navbar() {
 
                 {!isLoading && (
                     isLoggedIn ? (
-                        <button onClick={handleLogout} className={navbarStyles.logoutButton}>
-                            Logout
-                        </button>
+                        <>
+                            {state.status === "AUTHENTICATED" && (
+                                <span className="text-sm text-gray-300">{state.user.nickname}</span>
+                            )}
+                            <button onClick={handleLogout} className={navbarStyles.logoutButton}>
+                                Logout
+                            </button>
+                        </>
                     ) : (
                         <Link href="/login" className={navbarStyles.loginButton}>
                             Login
