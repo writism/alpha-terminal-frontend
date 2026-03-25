@@ -9,6 +9,48 @@ type Props = {
     asOf?: string | null
     /** false면 범례 생략 — 섹션 상단 DailyReturnsHeatmapLegend 사용(BL-FE-34). */
     showLegend?: boolean
+    /** BL-FE-38: 감성 예측 점수(-1~+1). 전달 시 히트맵 실제 등락 방향과 정합 뱃지를 표시한다. */
+    sentimentScore?: number
+}
+
+type Direction = 'UP' | 'DOWN' | 'NEUTRAL'
+type MatchResult = 'MATCH' | 'MISMATCH' | 'UNCLEAR'
+
+function calcMatchResult(sentimentScore: number, up: number, down: number): MatchResult {
+    const sentimentDir: Direction =
+        sentimentScore > 0.1 ? 'UP' : sentimentScore < -0.1 ? 'DOWN' : 'NEUTRAL'
+    if (sentimentDir === 'NEUTRAL') return 'UNCLEAR'
+
+    const total = up + down
+    if (total === 0) return 'UNCLEAR'
+    const ratio = up / total
+    const priceDir: Direction = ratio > 0.55 ? 'UP' : ratio < 0.45 ? 'DOWN' : 'NEUTRAL'
+    if (priceDir === 'NEUTRAL') return 'UNCLEAR'
+
+    return sentimentDir === priceDir ? 'MATCH' : 'MISMATCH'
+}
+
+const DIR_ARROW: Record<Direction, string> = { UP: '↑', DOWN: '↓', NEUTRAL: '' }
+
+function MatchBadge({ sentimentScore, up, down }: { sentimentScore: number; up: number; down: number }) {
+    const match = calcMatchResult(sentimentScore, up, down)
+    if (match === 'UNCLEAR') return null
+
+    const sentimentDir: Direction = sentimentScore > 0.1 ? 'UP' : 'DOWN'
+    const total = up + down
+    const priceDir: Direction = total > 0 && up / total > 0.55 ? 'UP' : 'DOWN'
+
+    const label = `AI${DIR_ARROW[sentimentDir]} · 실제${DIR_ARROW[priceDir]} ${match === 'MATCH' ? '✓' : '✗'}`
+    const style =
+        match === 'MATCH'
+            ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
+            : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
+
+    return (
+        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${style}`}>
+            {label}
+        </span>
+    )
 }
 
 /** 국내 관습: 상승 빨강, 하락 파랑 */
@@ -35,7 +77,7 @@ function bucketTooltip(day: string, bucket: number): string {
     return `${day} · 전일 대비 등락 분위: ${step}`
 }
 
-export function StockDailyReturnsHeatmap({ item, weeks, asOf = null, showLegend = false }: Props) {
+export function StockDailyReturnsHeatmap({ item, weeks, asOf = null, showLegend = false, sentimentScore }: Props) {
     // 한 줄형 일자 시퀀스가 기본이며, 폭이 좁아지면 wrap으로 2줄/3줄로 내려간다.
     const cells = [...item.series].sort((a, b) => a[0].localeCompare(b[0]))
     /** 히트맵에 포함된 가장 최근 거래일(각 칸은 그날 종가 vs 직전 거래일 종가). */
@@ -52,12 +94,21 @@ export function StockDailyReturnsHeatmap({ item, weeks, asOf = null, showLegend 
                 <span className="text-[10px] font-medium text-gray-600 dark:text-gray-300">
                     최근 거래일 등락 분위
                 </span>
-                <span
-                    className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums shrink-0 text-right max-w-[11rem] leading-tight"
-                    title="이 날짜는 히트맵에 담긴 가장 최근 거래일입니다. 각 칸은 그날의 전 거래일 종가 대비 등락 분위(상대 강도)입니다."
-                >
-                    마지막 거래일 {anchor}
-                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                    {sentimentScore !== undefined && (
+                        <MatchBadge
+                            sentimentScore={sentimentScore}
+                            up={item.summary.up}
+                            down={item.summary.down}
+                        />
+                    )}
+                    <span
+                        className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums text-right max-w-[11rem] leading-tight"
+                        title="이 날짜는 히트맵에 담긴 가장 최근 거래일입니다. 각 칸은 그날의 전 거래일 종가 대비 등락 분위(상대 강도)입니다."
+                    >
+                        마지막 거래일 {anchor}
+                    </span>
+                </div>
             </div>
             <div className="flex max-w-full flex-wrap gap-0.5">
                 {cells.map(([day, bucket]) => (

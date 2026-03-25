@@ -67,6 +67,7 @@ export default function StockSummaryCard({
           weeks={heatmap.weeks}
           asOf={heatmap.asOf ?? null}
           showLegend={false}
+          sentimentScore={sentiment_score}
         />
       )}
 
