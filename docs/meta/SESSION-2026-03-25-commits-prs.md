@@ -13,7 +13,7 @@
 
 ## 프론트엔드 (`alpha-desk-frontend`)
 
-### 커밋 (2개)
+### 커밋 (3개)
 
 1. **`docs(front): backlog BL-FE-30 through BL-FE-37`**  
    - `docs/backlog/BL-FE-30` ~ `BL-FE-37` (8파일)
@@ -24,6 +24,9 @@
    - `useClientPagination`, `ClientPaginationBar`  
    - Storybook (`@storybook/react-vite`), `next.config` rewrites
 
+3. **`docs(meta): session record for 2026-03-25 PR bundle`**  
+   - 본 문서 (`docs/meta/SESSION-2026-03-25-commits-prs.md`)
+
 ### 커밋에서 제외
 
 - `frontend.pid`
@@ -32,7 +35,7 @@
 
 ## 백엔드 (`alpha-desk-ai-server`)
 
-### 커밋 (3개)
+### 커밋 (4개)
 
 1. **`docs(back): backlog BL-BE-04 through BL-BE-17`**  
    - `docs/backlog/` 12파일 (BL-BE-04~09, BL-BE-13~17)
@@ -44,6 +47,9 @@
 3. **`feat: pipeline analysis logs, per-user watchlist, auth flow`**  
    - 파이프라인 분석 로그 ORM·리포지토리  
    - 관심종목 per-user, account/kakao/auth, 뉴스 수집기 등
+
+4. **`docs(meta): session record for 2026-03-25 PR bundle`**  
+   - `docs/meta/SESSION-2026-03-25-commits-prs.md` (요약본)
 
 ### 커밋에서 제외
 
