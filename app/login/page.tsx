@@ -11,11 +11,15 @@ const oauthButtons = [
 ]
 
 export default function LoginPage() {
-    const { state } = useAuth()
+    const { state, loadUser } = useAuth()
     const router = useRouter()
     const searchParams = useSearchParams()
     const reason = searchParams.get("reason")
     const expiredSignupSession = reason === "signup-session-expired"
+
+    useEffect(() => {
+        loadUser()
+    }, [loadUser])
 
     useEffect(() => {
         if (state.status === "AUTHENTICATED") {
