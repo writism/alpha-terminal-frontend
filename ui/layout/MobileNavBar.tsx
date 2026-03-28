@@ -8,7 +8,6 @@ const NAV_ITEMS = [
     { href: "/watchlist", label: "WATCH", icon: "visibility" },
     { href: "/board", label: "BOARD", icon: "forum" },
     { href: "/youtube", label: "VIDEO", icon: "play_circle" },
-    { href: "/stock", label: "STOCK", icon: "search" },
 ]
 
 export default function MobileNavBar() {

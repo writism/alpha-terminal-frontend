@@ -8,7 +8,6 @@ const NAV_ITEMS = [
     { href: "/watchlist", label: "WATCHLIST", icon: "visibility" },
     { href: "/board", label: "BOARD", icon: "forum" },
     { href: "/youtube", label: "VIDEOS", icon: "play_circle" },
-    { href: "/", label: "FEED", icon: "newspaper", exact: true },
 ]
 
 export default function SideBar() {

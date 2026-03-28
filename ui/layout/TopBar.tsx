@@ -63,8 +63,9 @@ export default function TopBar() {
                     onClick={toggle}
                     className="border border-outline-variant font-mono text-[10px] text-inverse-on-surface px-1.5 py-0.5 hover:text-white hover:border-inverse-primary transition-none uppercase cursor-pointer"
                     title={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
+                    suppressHydrationWarning
                 >
-                    <span className="material-symbols-outlined text-[14px]">
+                    <span className="material-symbols-outlined text-[14px]" suppressHydrationWarning>
                         {theme === "dark" ? "light_mode" : "dark_mode"}
                     </span>
                 </button>
