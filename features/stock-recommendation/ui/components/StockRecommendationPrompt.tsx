@@ -1,0 +1,107 @@
+"use client"
+
+import { useMarketAnalysis } from "../../application/hooks/useMarketAnalysis"
+
+export function StockRecommendationPrompt() {
+    const { question, setQuestion, answer, isLoading, error, submit, reset } = useMarketAnalysis()
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault()
+            submit()
+        }
+    }
+
+    const isEmpty = !question.trim()
+
+    return (
+        <main className="p-6 md:p-8 max-w-2xl mx-auto">
+            <div className="mb-6 border-b border-outline pb-4">
+                <div className="font-headline font-bold text-on-surface text-xl uppercase tracking-tighter">
+                    주식 추천
+                </div>
+                <div className="font-mono text-sm text-on-surface-variant mt-0.5">
+                    관심종목 테마를 기반으로 AI가 질문에 답변합니다.
+                </div>
+            </div>
+
+            {/* 질문 입력 영역 */}
+            <section className="mb-4">
+                <div className="font-mono text-xs font-bold text-on-surface uppercase tracking-widest mb-2">
+                    QUERY_INPUT
+                </div>
+                <div className="border border-outline bg-surface-container-lowest focus-within:border-primary">
+                    <textarea
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="관심종목 관련 질문을 입력하세요 (예: 방산주 최근 동향은?)"
+                        rows={4}
+                        disabled={isLoading}
+                        className="w-full bg-transparent outline-none font-mono text-sm text-on-surface placeholder:text-outline resize-none px-3 py-2.5 disabled:opacity-50"
+                    />
+                    <div className="flex items-center justify-between px-3 py-2 border-t border-outline-variant">
+                        <span className="font-mono text-xs text-outline">
+                            Ctrl+Enter 로 전송
+                        </span>
+                        <div className="flex items-center gap-2">
+                            {answer && (
+                                <button
+                                    type="button"
+                                    onClick={reset}
+                                    className="font-mono text-xs text-on-surface-variant border border-outline-variant px-2 py-1 uppercase hover:bg-surface-container-high transition-none"
+                                >
+                                    초기화
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                onClick={submit}
+                                disabled={isEmpty || isLoading}
+                                className="font-mono text-xs font-bold px-4 py-1 uppercase border transition-none
+                                    bg-primary border-primary text-white
+                                    disabled:opacity-40 disabled:cursor-not-allowed
+                                    enabled:hover:opacity-90"
+                            >
+                                {isLoading ? "분석 중..." : "전송"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 에러 */}
+            {error && (
+                <div className="mb-4 border border-error px-4 py-3 font-mono text-sm text-error">
+                    [ERROR] {error}
+                </div>
+            )}
+
+            {/* 답변 */}
+            {isLoading && (
+                <div className="border border-outline-variant bg-surface-container px-4 py-6 flex items-center gap-3">
+                    <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+                    <span className="font-mono text-sm text-on-surface-variant">AI가 분석 중입니다...</span>
+                </div>
+            )}
+
+            {answer && !isLoading && (
+                <section className="border border-outline bg-surface-container-low">
+                    <div className={`flex items-center gap-2 px-4 py-2 border-b border-outline-variant ${
+                        answer.in_scope ? "bg-primary/10" : "bg-surface-container"
+                    }`}>
+                        <span className="material-symbols-outlined text-[14px] text-primary">
+                            {answer.in_scope ? "check_circle" : "info"}
+                        </span>
+                        <span className="font-mono text-xs font-bold text-on-surface uppercase tracking-widest">
+                            {answer.in_scope ? "ANALYSIS_RESULT" : "OUT_OF_SCOPE"}
+                        </span>
+                    </div>
+                    <div className="px-4 py-4 font-mono text-sm text-on-surface leading-relaxed whitespace-pre-wrap">
+                        {answer.answer}
+                    </div>
+                </section>
+            )}
+        </main>
+    )
+}

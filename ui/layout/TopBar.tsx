@@ -10,7 +10,7 @@ const NAV_ITEMS = [
     { href: "/dashboard", label: "DASHBOARD" },
     { href: "/watchlist", label: "WATCHLIST" },
     { href: "/board", label: "BOARD" },
-    { href: "/stock-theme", label: "주식 추천" },
+    { href: "/stock-recommendation", label: "주식 추천" },
     { href: "/youtube", label: "VIDEOS" },
 ]
 
