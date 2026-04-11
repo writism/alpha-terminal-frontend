@@ -2,13 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { ApiError } from "@/infrastructure/http/apiError"
-import {
-    createFallbackPipelineProgressEvent,
-    type PipelineProgressEvent,
-} from "../../domain/model/pipelineProgressEvent"
+import type { PipelineProgressEvent } from "../../domain/model/pipelineProgressEvent"
 import {
     fetchAnalysisLogs,
     fetchDashboardSummaries,
+    fetchReportSummaries,
     runPipeline,
     runPipelineStream,
 } from "../../infrastructure/api/dashboardApi"
@@ -32,21 +30,25 @@ function formatPipelineError(err: unknown): string {
 
 export const useDashboard = () => {
     const [summaries, setSummaries] = useState<StockSummary[]>([])
+    const [reportSummaries, setReportSummaries] = useState<StockSummary[]>([])
     const [analysisLogs, setAnalysisLogs] = useState<AnalysisLog[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [pipelineResult, setPipelineResult] = useState<PipelineResult | null>(null)
     const [progressEvents, setProgressEvents] = useState<PipelineProgressEvent[]>([])
+    const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null)
 
     const load = useCallback(async () => {
         setIsLoading(true)
         setError(null)
         try {
-            const [summaryData, logData] = await Promise.all([
+            const [summaryData, reportData, logData] = await Promise.all([
                 fetchDashboardSummaries(),
+                fetchReportSummaries(),
                 fetchAnalysisLogs(),
             ])
             setSummaries(summaryData)
+            setReportSummaries(reportData)
             setAnalysisLogs(logData)
         } catch (err) {
             setError(formatLoadError(err))
@@ -63,28 +65,30 @@ export const useDashboard = () => {
         setError(null)
         setPipelineResult(null)
         setProgressEvents([])
+        setElapsedSeconds(null)
+
+        const startedAt = Date.now()
+
+        const onEvent = (event: PipelineProgressEvent) => {
+            setProgressEvents((prev) => [...prev, event])
+        }
 
         try {
-            const streamResult = await runPipelineStream(symbols, (e) => {
-                setProgressEvents((prev) => [...prev, e])
-            })
+            const streamResult = await runPipelineStream(symbols, onEvent)
 
             if (!streamResult.used) {
-                setProgressEvents([createFallbackPipelineProgressEvent()])
+                // SSE 미지원 시 폴백
                 const result = await runPipeline(symbols)
                 setPipelineResult(result)
-                await new Promise((resolve) => setTimeout(resolve, 500))
-                await load()
-                setProgressEvents([])
-                return
-            }
-
-            if (streamResult.streamError) {
+            } else if (streamResult.streamError) {
                 setError(streamResult.streamError)
             }
+
+            setElapsedSeconds(Math.round((Date.now() - startedAt) / 1000))
             await load()
             setProgressEvents([])
         } catch (err) {
+            setElapsedSeconds(Math.round((Date.now() - startedAt) / 1000))
             setError(formatPipelineError(err))
             setProgressEvents([])
         }
@@ -92,11 +96,13 @@ export const useDashboard = () => {
 
     return {
         summaries,
+        reportSummaries,
         analysisLogs,
         isLoading,
         error,
         pipelineResult,
         progressEvents,
+        elapsedSeconds,
         executePipeline,
         reload: load,
     }

@@ -1,4 +1,3 @@
-import { env } from "@/infrastructure/config/env"
 import { readApiError } from "@/infrastructure/http/apiError"
 import { httpClient } from "@/infrastructure/http/httpClient"
 import type { PipelineProgressEvent } from "../../domain/model/pipelineProgressEvent"
@@ -6,6 +5,11 @@ import type { AnalysisLog, StockSummary, PipelineResult } from "../../domain/mod
 
 export async function fetchDashboardSummaries(): Promise<StockSummary[]> {
     const res = await httpClient.get("/pipeline/summaries")
+    return res.json()
+}
+
+export async function fetchReportSummaries(): Promise<StockSummary[]> {
+    const res = await httpClient.get("/pipeline/report-summaries")
     return res.json()
 }
 
@@ -17,6 +21,16 @@ export async function runPipeline(symbols?: string[]): Promise<PipelineResult> {
 
 export async function fetchAnalysisLogs(): Promise<AnalysisLog[]> {
     const res = await httpClient.get("/pipeline/logs")
+    return res.json()
+}
+
+export interface PipelineProgressResponse {
+    messages: string[]
+    done: boolean
+}
+
+export async function fetchPipelineProgress(): Promise<PipelineProgressResponse> {
+    const res = await httpClient.get("/pipeline/progress")
     return res.json()
 }
 
@@ -32,7 +46,7 @@ export async function runPipelineStream(
     symbols: string[] | undefined,
     onEvent: (event: PipelineProgressEvent) => void,
 ): Promise<RunPipelineStreamResult> {
-    const res = await fetch(`${env.apiBaseUrl}/pipeline/run-stream`, {
+    const res = await fetch(`/api/pipeline/run-stream`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

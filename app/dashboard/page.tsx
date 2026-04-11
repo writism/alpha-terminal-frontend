@@ -3,20 +3,26 @@
 import { useEffect, useMemo, useState } from "react"
 import { useDashboard } from "@/features/dashboard/application/hooks/useDashboard"
 import { excludeCurrentSummaryFromLogs } from "@/features/dashboard/domain/excludeCurrentSummaryFromLogs"
+import { useDailyReturnsHeatmap } from "@/features/stock/application/hooks/useDailyReturnsHeatmap"
 import { useWatchlist } from "@/features/watchlist/application/hooks/useWatchlist"
+import { useAuth } from "@/features/auth/application/hooks/useAuth"
 import { DashboardAnalysisLogsSection } from "./components/DashboardAnalysisLogsSection"
 import { DashboardPipelineResult } from "./components/DashboardPipelineResult"
 import { DashboardSummarySection } from "./components/DashboardSummarySection"
 import { DashboardWatchlistSection } from "./components/DashboardWatchlistSection"
 
 export default function DashboardPage() {
+    const { state: authState } = useAuth()
+    const isLoggedIn = authState.status === "AUTHENTICATED"
     const {
         summaries,
+        reportSummaries,
         analysisLogs,
         isLoading: isSummaryLoading,
         error: summaryError,
         pipelineResult,
         progressEvents,
+        elapsedSeconds,
         executePipeline,
         reload,
     } = useDashboard()
@@ -75,28 +81,45 @@ export default function DashboardPage() {
         [analysisLogs, summaries],
     )
 
+    const heatmapSymbols = useMemo(() => {
+        const ids = new Set<string>()
+        for (const s of summaries) {
+            ids.add(s.symbol.trim().toUpperCase())
+        }
+        for (const l of analysisLogsForDisplay) {
+            ids.add(l.symbol.trim().toUpperCase())
+        }
+        return Array.from(ids)
+    }, [summaries, analysisLogsForDisplay])
+
+    const { bySymbol: heatmapBySymbol, data: heatmapData } = useDailyReturnsHeatmap(heatmapSymbols, 6)
+
     return (
         <main
-            className="min-h-screen bg-background text-foreground p-6 md:p-10"
+            className="max-w-6xl mx-auto p-6 pt-8 md:p-8"
             aria-busy={running}
         >
-            <header className="mb-8 flex items-center justify-between">
+            <header className="mb-6 flex items-center justify-between border-b border-outline pb-4">
                 <div>
-                    <h1 className="text-2xl font-bold">대시보드</h1>
-                    <p className="text-sm text-gray-500 mt-1">관심종목 요약 정보</p>
+                    <div className="font-headline font-bold text-on-surface text-xl uppercase tracking-tighter">
+                        DASHBOARD
+                    </div>
+                    <div className="font-mono text-sm text-on-surface-variant mt-0.5">
+                        관심종목 AI 분석 요약
+                    </div>
                 </div>
                 <button
                     type="button"
                     onClick={handleRunPipeline}
                     disabled={running || isSummaryLoading || !canRun}
-                    className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400 transition-colors flex items-center gap-2"
+                    className="flex items-center gap-2 bg-primary px-4 py-2 font-mono text-[11px] text-white uppercase hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                     {running && (
-                        <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     )}
                     {running
-                        ? `선택 종목 AI 분석 중... (${selectedSymbols.length}개)`
-                        : `선택 종목 분석 (${selectedSymbols.length}개)`}
+                        ? `ANALYZING... (${selectedSymbols.length})`
+                        : `RUN_ANALYSIS (${selectedSymbols.length})`}
                 </button>
             </header>
 
@@ -104,17 +127,18 @@ export default function DashboardPage() {
                 running={running}
                 pipelineResult={pipelineResult}
                 allSkipped={allSkipped}
+                elapsedSeconds={elapsedSeconds}
             />
 
             {summaryError && (
-                <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700">
-                    <span className="flex-1 text-sm">{summaryError}</span>
+                <div className="mb-4 flex flex-wrap items-center gap-3 border border-outline px-4 py-3 font-mono text-[11px] text-error">
+                    <span className="flex-1">[ERROR] {summaryError}</span>
                     <button
                         type="button"
                         onClick={() => reload()}
-                        className="shrink-0 rounded border border-red-400 px-3 py-1 text-sm font-medium hover:bg-red-100"
+                        className="shrink-0 border border-outline px-3 py-1 font-mono text-[11px] uppercase hover:bg-surface-container"
                     >
-                        다시 시도
+                        RETRY
                     </button>
                 </div>
             )}
@@ -133,16 +157,22 @@ export default function DashboardPage() {
 
             <DashboardSummarySection
                 summaries={summaries}
+                reportSummaries={reportSummaries}
                 isSummaryLoading={isSummaryLoading}
                 running={running}
                 watchlistCount={items.length}
                 progressEvents={progressEvents}
+                heatmapBySymbol={heatmapBySymbol}
+                heatmapWeeks={heatmapData?.weeks ?? 6}
+                isLoggedIn={isLoggedIn}
             />
 
             <DashboardAnalysisLogsSection
                 analysisLogs={analysisLogsForDisplay}
                 totalLogsFromApi={analysisLogs.length}
                 isSummaryLoading={isSummaryLoading}
+                heatmapBySymbol={heatmapBySymbol}
+                heatmapWeeks={heatmapData?.weeks ?? 6}
             />
         </main>
     )
