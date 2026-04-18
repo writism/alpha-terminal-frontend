@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect } from "react"
 import { useAuth } from "@/features/auth/application/hooks/useAuth"
 import { useTheme } from "@/features/theme/application/hooks/useTheme"
+import NotificationBell from "@/features/notification/ui/components/NotificationBell"
 
 const NAV_ITEMS = [
     { href: "/", label: "HOME", exact: true },
@@ -78,6 +79,8 @@ export default function TopBar() {
                         {state.user.nickname}
                     </span>
                 )}
+
+                {isLoggedIn && <NotificationBell />}
 
                 {isLoggedIn ? (
                     <button
