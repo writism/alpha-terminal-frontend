@@ -117,7 +117,7 @@ export function ShareActionBar({
 
     return (
         <>
-            <div className="flex flex-wrap items-center gap-4 border-t border-outline pt-3 mt-1">
+            <div className="flex items-center gap-3 border-t border-outline pt-3 mt-1">
                 <button
                     type="button"
                     onClick={() => cardId && handleLike()}
@@ -165,7 +165,7 @@ export function ShareActionBar({
                         type="button"
                         onClick={handlePublishToBoard}
                         disabled={publishingBoard}
-                        className="ml-auto sm:ml-0 flex items-center gap-1.5 text-sm text-gray-400 hover:text-amber-300 transition disabled:opacity-40"
+                        className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-amber-300 transition disabled:opacity-40"
                         aria-label="게시판에 올리기"
                     >
                         <span className="text-base">📋</span>
