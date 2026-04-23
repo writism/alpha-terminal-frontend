@@ -156,7 +156,7 @@ export function ShareActionBar({
                         aria-label="SNS 공유"
                     >
                         <span className="text-base">↗️</span>
-                        <span>{sharing ? "공유 중..." : "공유하기"}</span>
+                        <span className="whitespace-nowrap">{sharing ? "..." : "SHARE"}</span>
                     </button>
                 )}
 
@@ -169,7 +169,7 @@ export function ShareActionBar({
                         aria-label="게시판에 올리기"
                     >
                         <span className="text-base">📋</span>
-                        <span>{publishingBoard ? "등록 중..." : "게시판에 올리기"}</span>
+                        <span className="whitespace-nowrap">{publishingBoard ? "..." : "BOARD"}</span>
                     </button>
                 )}
             </div>

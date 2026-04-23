@@ -6,28 +6,22 @@ on:
       - main
 
 jobs:
-  # EC2 self-hosted runner에서 직접 빌드+배포
-  # - 네이티브 ARM64 빌드 (QEMU 불필요)
-  # - GHCR push/pull 왕복 제거
-  # - Docker 레이어 캐시 EC2 로컬 재사용
   build-and-deploy:
-    if: ${{ secrets.REPO_USER != '' && secrets.GHCR_TOKEN != '' }}
+    if: secrets.REPO_USER != '' && secrets.GHCR_TOKEN != ''
     runs-on: [self-hosted, multi-agent-ui]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Create .env
         run: echo "${{ secrets.FRONTEND_ENV }}" > .env
 
-      - name: Build image (native ARM64)
+      - name: Build image
         run: docker build -t alphadesk-web:latest .
 
       - name: Ensure network
-        run: |
-          docker network inspect alphadesk-network >/dev/null 2>&1 || \
-          docker network create alphadesk-network
+        run: docker network inspect alphadesk-network >/dev/null 2>&1 || docker network create alphadesk-network
 
       - name: Replace container
         run: |
@@ -44,5 +38,4 @@ jobs:
       - name: Health check
         run: |
           sleep 5
-          curl -sSf http://localhost:3000/ && echo "alphadesk-web is UP" || \
-          { docker logs alphadesk-web --tail 100; exit 1; }
+          curl -sSf http://localhost:3000/ && echo "alphadesk-web is UP" || docker logs alphadesk-web --tail 100
