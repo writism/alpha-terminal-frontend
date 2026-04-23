@@ -54,14 +54,7 @@ export default function HomePage() {
                         <span className="text-[9px] text-on-surface-variant/60 normal-case mt-0.5">AI 기반 주식 분석 워크스테이션</span>
                     </div>
                     {isReady && (
-                        <div className="flex items-center gap-2 pr-2">
-                            <Link
-                                href="/dashboard?autorun=true"
-                                className="flex items-center gap-1 bg-primary px-3 py-1.5 font-mono text-[10px] text-white uppercase hover:opacity-90"
-                            >
-                                <span className="material-symbols-outlined text-[12px]">play_arrow</span>
-                                RUN_ANALYSIS
-                            </Link>
+                        <div className="flex items-center pr-2">
                             <Link
                                 href="/my#watchlist"
                                 className="flex items-center gap-1 border border-outline px-3 py-1.5 font-mono text-[10px] text-on-surface-variant hover:text-primary hover:border-primary uppercase"
