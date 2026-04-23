@@ -11,7 +11,7 @@ jobs:
   # - GHCR push/pull 왕복 제거
   # - Docker 레이어 캐시 EC2 로컬 재사용
   build-and-deploy:
-    if: ${{ secrets.FRONTEND_ENV != '' }}
+    if: ${{ secrets.REPO_USER != '' && secrets.GHCR_TOKEN != '' }}
     runs-on: [self-hosted, multi-agent-ui]
 
     steps:
