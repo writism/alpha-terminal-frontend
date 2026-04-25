@@ -45,21 +45,12 @@ async function handler(
   if (backendResponse.status >= 300 && backendResponse.status < 400) {
     const location = backendResponse.headers.get("location");
     if (location) {
-      // SSRF/Open Redirect 방지: 허용된 도메인 또는 상대 경로만 통과
-      // - 백엔드/프론트엔드 hostname (http/https 불일치 허용)
-      // - Kakao OAuth 진입점 (kauth.kakao.com) 명시적 허용
-      const ALLOWED_EXTERNAL_HOSTS = ["kauth.kakao.com"];
+      // javascript:, data: 등 비-HTTP 프로토콜 URI 차단 (XSS 방지)
+      // 도메인 제한 없음 — Kakao OAuth 등 신뢰된 BE가 반환하는 외부 리다이렉트 허용
       const isAllowed = (() => {
         try {
           const parsed = new URL(location, BACKEND_URL);
-          if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
-          const backendHost = new URL(BACKEND_URL).hostname;
-          const frontendHost = request.nextUrl.hostname;
-          return (
-            parsed.hostname === backendHost ||
-            parsed.hostname === frontendHost ||
-            ALLOWED_EXTERNAL_HOSTS.includes(parsed.hostname)
-          );
+          return parsed.protocol === "http:" || parsed.protocol === "https:";
         } catch {
           return location.startsWith("/");
         }
